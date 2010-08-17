@@ -1,0 +1,21 @@
+Revision history for Filesys::DiskUsage
+
+0.05
+    - fix for when a directory isn't openable (kudos to J.T. Conklin
+      for spotting the problem and providing a patch)
+    - added some tests
+
+0.04  Mon Nov 05 10:31:00 2005
+    - added sector-size and symlink-size patch, thanks to Darin McBride
+	- fixed a couple of things on fdu
+
+0.03  Mon Oct 24 17:21:00 2005
+	- added the fdu command
+	- directory excluding now works (thanks to Hussein Patni for pointing
+	  this out)
+
+0.02  Wed Jan 19 10:53:00 2005
+	- fixed a bug regarding links, thanks to Steve Cleveland
+
+0.01  Mon Dec 27 16:42:00 2004
+	- first version
