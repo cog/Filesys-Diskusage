@@ -14,6 +14,7 @@ WriteMakefile(
         'Test::Warn' => 0,
         'File::Basename' => 0,
         'File::Temp' => 0,
+        'File::Find' => 0,
     },
     META_MERGE => {
         resources => {

@@ -2,7 +2,6 @@
 use warnings;
 use strict;
 use File::Find;
-use File::Slurp;
 use Test::More qw(no_plan);
 
 my $last_version = undef;
@@ -33,4 +32,11 @@ find({wanted => \&check, no_chdir => 1}, 'blib');
 
 if (! defined $last_version) {
       fail('Failed to find any files with $VERSION');
+}
+
+sub read_file {
+	my $file = shift;
+	open my $fh, '<', $file or die;
+	local $/ = undef;
+	return scalar <$fh>;
 }
