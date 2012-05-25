@@ -11,7 +11,9 @@ WriteMakefile(
     'EXE_FILES'         => [],
     PREREQ_PM => {
         'Test::More' => 0,
+        'Test::Warn' => 0,
         'File::Basename' => 0,
+        'File::Temp' => 0,
     },
     META_MERGE => {
         resources => {
