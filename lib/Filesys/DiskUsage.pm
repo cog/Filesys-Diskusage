@@ -170,6 +170,7 @@ places:
 
 =cut
 
+my %all;
 sub du {
   # options
   my %config = (
@@ -188,10 +189,16 @@ sub du {
   if (ref($_[0]) eq 'HASH') {%config = (%config, %{+shift})}
   $config{human} = $config{'human-readable'} || $config{'Human-readable'};
 
+  my $calling_sub = (caller(1))[3];
+  if (not defined $calling_sub or $calling_sub ne 'Filesys::DiskUsage::du') {
+    %all = ();
+  }
   my %sizes;
 
   # calculate sizes
   for (@_) {
+    next if exists $all{$_};
+    $all{$_} = 0;
     if (defined $config{exclude} and -f || -d) {
       my $filename = basename($_);
       next if $filename =~ /$config{exclude}/;
@@ -201,6 +208,7 @@ sub du {
         $sizes{$_} = du( { 'recursive'   => $config{'recursive'},
                            'exclude'     => $config{'exclude'},
                            'sector-size' => $config{'sector-size'},
+                           'dereference' => $config{'dereference'},
                          }, readlink($_));
       }
       else {
@@ -225,6 +233,7 @@ sub du {
                               'exclude'       => $config{'exclude'},
                               'sector-size'   => $config{'sector-size'},
                               'show-warnings' => $config{'show-warnings'},
+                              'dereference' => $config{'dereference'},
                             }, map {"$dir/$_"} grep {! /^\.\.?$/} @files);
         }
         elsif ( $config{'show-warnings'} ) {
