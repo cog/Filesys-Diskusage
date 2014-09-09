@@ -1,6 +1,7 @@
 *.swp
 MYMETA.*
 META.*
+*.bak
 MANIFEST
 Makefile
 Makefile.old
