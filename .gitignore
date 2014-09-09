@@ -1,6 +1,7 @@
 *.swp
-MYMETA.json
-MYMETA.yml
+MYMETA.*
+META.*
+MANIFEST
 Makefile
 Makefile.old
 blib
