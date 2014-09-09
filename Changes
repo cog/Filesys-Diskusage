@@ -1,6 +1,10 @@
 Revision history for Filesys::DiskUsage
 
-0.05
+0.06 2014.09.09
+    - New maintainer. Link to GitHub.
+    - Remove the need for File::Slurp
+
+0.05 2010.08.17
     - fix for when a directory isn't openable (kudos to J.T. Conklin
       for spotting the problem and providing a patch)
     - added some tests
