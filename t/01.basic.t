@@ -40,7 +40,7 @@ is( du( { recursive => 0 , 'human-readable' => 1 } , 't/samples' ), '0.00B' );
 is( du( { recursive => 0 , 'Human-readable' => 1 } , 't/samples' ), '0.00B' );
 
 SKIP: {
-    skip "No symlinks on Windows", 1 if $^O =~ /win32/i;
+    skip "No symlinks on Windows", 2 if $^O =~ /win32/i;
 
     my $dir = tempdir( CLEANUP => 1 );
     #diag $dir;
