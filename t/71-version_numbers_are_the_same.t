@@ -15,6 +15,7 @@ sub check {
       return if (m{blib/script/}xms && $content !~ m/\A \#![^\r\n]+?perl/xms);
 
       my @version_lines = $content =~ m/ ( [^\n]* \$VERSION [^\n]* ) /gxms;
+      @version_lines = grep { $_ !~ /die/ } @version_lines;
       if (@version_lines == 0) {
             fail($_);
       }
