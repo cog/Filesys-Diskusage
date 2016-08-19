@@ -217,8 +217,11 @@ sub du {
       }
     }
     elsif (-f) { # is a file
-      $sizes{$_}  = $config{'sector-size'} - 1 + -s;
-      $sizes{$_} -= $sizes{$_} % $config{'sector-size'};
+      my $file_size = -s;
+      if (defined $file_size) {
+        $sizes{$_}  = $config{'sector-size'} - 1 + $file_size;
+        $sizes{$_} -= $sizes{$_} % $config{'sector-size'};
+      }
     }
     elsif (-d) { # is a directory
       if ($config{recursive} && $config{'max-depth'}) {
