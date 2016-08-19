@@ -5,6 +5,8 @@ use strict;
 
 use File::Basename;
 
+use constant BYTES_PER_BLOCK => 512;
+
 =head1 NAME
 
 Filesys::DiskUsage - Estimate file space usage (similar to `du`)
@@ -72,6 +74,17 @@ Get the size of directories:
 =head3 OPTIONS
 
 =over 6
+
+=item blocks
+
+Return the size based upon the number of blocks that the file occupies,
+rather than the length of the file. The two values might be different
+if the file is sparse.
+
+This value should match more closely the value returned by the du(1)
+command.
+
+    $total = du( { blocks => 1 } , $dir );
 
 =item dereference
 
@@ -174,6 +187,7 @@ my %all;
 sub du {
   # options
   my %config = (
+    'blocks'            => 0,
     'dereference'       => 0,
     'exclude'           => undef,
     'human-readable'    => 0,
@@ -208,6 +222,7 @@ sub du {
         $sizes{$_} = du( { 'recursive'   => $config{'recursive'},
                            'exclude'     => $config{'exclude'},
                            'sector-size' => $config{'sector-size'},
+                           'blocks'      => $config{'blocks'},
                            'dereference' => $config{'dereference'},
                          }, readlink($_));
       }
@@ -217,10 +232,14 @@ sub du {
       }
     }
     elsif (-f) { # is a file
-      my $file_size = -s;
-      if (defined $file_size) {
-        $sizes{$_}  = $config{'sector-size'} - 1 + $file_size;
-        $sizes{$_} -= $sizes{$_} % $config{'sector-size'};
+      my @stat = stat(_);
+      if (defined $stat[0]) {
+        if ($config{blocks}) {
+          $sizes{$_} = $stat[12] * BYTES_PER_BLOCK;
+        } else {
+          $sizes{$_}  = $config{'sector-size'} - 1 + $stat[7];
+          $sizes{$_} -= $sizes{$_} % $config{'sector-size'};
+        }
       }
     }
     elsif (-d) { # is a directory
@@ -235,6 +254,7 @@ sub du {
                               'max-depth'     => $config{'max-depth'} -1,
                               'exclude'       => $config{'exclude'},
                               'sector-size'   => $config{'sector-size'},
+                              'blocks'        => $config{'blocks'},
                               'show-warnings' => $config{'show-warnings'},
                               'dereference' => $config{'dereference'},
                             }, map {"$dir/$_"} grep {! /^\.\.?$/} @files);
