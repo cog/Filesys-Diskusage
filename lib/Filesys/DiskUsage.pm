@@ -226,10 +226,10 @@ sub du {
     elsif (-d) { # is a directory
       if ($config{recursive} && $config{'max-depth'}) {
 
-        if (opendir(DIR, $_)) {
+        if (opendir(my $dh, $_)) {
           my $dir = $_;
-          my @files = readdir DIR;
-          closedir(DIR);
+          my @files = readdir $dh;
+          closedir($dh);
 
           $sizes{$_} += du( { 'recursive'     => $config{'recursive'},
                               'max-depth'     => $config{'max-depth'} -1,
