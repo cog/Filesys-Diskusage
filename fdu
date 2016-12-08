@@ -3,7 +3,7 @@ use warnings;
 use strict;
 use 5.006;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head1 NAME
 
@@ -143,6 +143,6 @@ Jose Alves de Castro, E<lt>cog@cpan.orgE<gt>
 Copyright 2004 by Jose Alves de Castro
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut

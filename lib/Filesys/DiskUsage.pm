@@ -28,7 +28,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(
 );
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 
@@ -100,7 +100,7 @@ Exclude files that match PATTERN.
 
 Get the size of every file except for dot files:
 
-  $total = du( { exclude => qr/^\./ } , @files ); 
+  $total = du( { exclude => qr/^\./ } , @files );
 
 =item human-readable
 
