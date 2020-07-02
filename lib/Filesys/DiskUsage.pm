@@ -5,6 +5,8 @@ use strict;
 
 use File::Basename;
 
+use constant BYTES_PER_BLOCK => 512;
+
 =head1 NAME
 
 Filesys::DiskUsage - Estimate file space usage (similar to `du`)
@@ -26,7 +28,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(
 );
 
-our $VERSION = '0.05';
+our $VERSION = '0.13';
 
 =head1 SYNOPSIS
 
@@ -73,6 +75,17 @@ Get the size of directories:
 
 =over 6
 
+=item blocks
+
+Return the size based upon the number of blocks that the file occupies,
+rather than the length of the file. The two values might be different
+if the file is sparse.
+
+This value should match more closely the value returned by the du(1)
+command.
+
+    $total = du( { blocks => 1 } , $dir );
+
 =item dereference
 
 Follow symbolic links. Default is 0. Overrides C<symlink-size>.
@@ -87,7 +100,7 @@ Exclude files that match PATTERN.
 
 Get the size of every file except for dot files:
 
-  $total = du( { exclude => qr/^\./ } , @files ); 
+  $total = du( { exclude => qr/^\./ } , @files );
 
 =item human-readable
 
@@ -170,9 +183,12 @@ places:
 
 =cut
 
+my %all;
 sub du {
   # options
   my %config = (
+    'blocks'            => 0,
+    'count-dirs'        => 0,
     'dereference'       => 0,
     'exclude'           => undef,
     'human-readable'    => 0,
@@ -188,10 +204,16 @@ sub du {
   if (ref($_[0]) eq 'HASH') {%config = (%config, %{+shift})}
   $config{human} = $config{'human-readable'} || $config{'Human-readable'};
 
+  my $calling_sub = (caller(1))[3];
+  if (not defined $calling_sub or $calling_sub ne 'Filesys::DiskUsage::du') {
+    %all = ();
+  }
   my %sizes;
 
   # calculate sizes
   for (@_) {
+    next if exists $all{$_};
+    $all{$_} = 0;
     if (defined $config{exclude} and -f || -d) {
       my $filename = basename($_);
       next if $filename =~ /$config{exclude}/;
@@ -201,6 +223,8 @@ sub du {
         $sizes{$_} = du( { 'recursive'   => $config{'recursive'},
                            'exclude'     => $config{'exclude'},
                            'sector-size' => $config{'sector-size'},
+                           'blocks'      => $config{'blocks'},
+                           'dereference' => $config{'dereference'},
                          }, readlink($_));
       }
       else {
@@ -209,22 +233,33 @@ sub du {
       }
     }
     elsif (-f) { # is a file
-      $sizes{$_}  = $config{'sector-size'} - 1 + -s;
-      $sizes{$_} -= $sizes{$_} % $config{'sector-size'};
+      my @stat = stat(_);
+      if (defined $stat[0]) {
+        if ($config{blocks}) {
+          $sizes{$_} = $stat[12] * BYTES_PER_BLOCK;
+        } else {
+          $sizes{$_}  = $config{'sector-size'} - 1 + $stat[7];
+          $sizes{$_} -= $sizes{$_} % $config{'sector-size'};
+        }
+      }
     }
     elsif (-d) { # is a directory
       if ($config{recursive} && $config{'max-depth'}) {
 
-        if (opendir(DIR, $_)) {
+        if (opendir(my $dh, $_)) {
           my $dir = $_;
-          my @files = readdir DIR;
-          closedir(DIR);
+          my @files = readdir $dh;
+          closedir($dh);
+          $sizes{$_} += (stat $dir)[7] if $config{'count-dirs'};
 
           $sizes{$_} += du( { 'recursive'     => $config{'recursive'},
                               'max-depth'     => $config{'max-depth'} -1,
                               'exclude'       => $config{'exclude'},
                               'sector-size'   => $config{'sector-size'},
+                              'blocks'        => $config{'blocks'},
+                              'count-dirs'    => $config{'count-dirs'},
                               'show-warnings' => $config{'show-warnings'},
+                              'dereference' => $config{'dereference'},
                             }, map {"$dir/$_"} grep {! /^\.\.?$/} @files);
         }
         elsif ( $config{'show-warnings'} ) {

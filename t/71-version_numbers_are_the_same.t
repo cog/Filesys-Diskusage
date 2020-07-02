@@ -2,7 +2,6 @@
 use warnings;
 use strict;
 use File::Find;
-use File::Slurp;
 use Test::More qw(no_plan);
 
 my $last_version = undef;
@@ -16,6 +15,7 @@ sub check {
       return if (m{blib/script/}xms && $content !~ m/\A \#![^\r\n]+?perl/xms);
 
       my @version_lines = $content =~ m/ ( [^\n]* \$VERSION [^\n]* ) /gxms;
+      @version_lines = grep { $_ !~ /die/ } @version_lines;
       if (@version_lines == 0) {
             fail($_);
       }
@@ -33,4 +33,11 @@ find({wanted => \&check, no_chdir => 1}, 'blib');
 
 if (! defined $last_version) {
       fail('Failed to find any files with $VERSION');
+}
+
+sub read_file {
+	my $file = shift;
+	open my $fh, '<', $file or die;
+	local $/ = undef;
+	return scalar <$fh>;
 }
